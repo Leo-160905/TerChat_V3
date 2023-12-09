@@ -26,12 +26,12 @@ lateinit var thread: Thread
 
 fun main(args: Array<String>) {
     programmParams = args.joinToString("")
-    if (programmParams.startsWith("-f")){
+    if (programmParams.startsWith("-f")) {
         singleFileTransfer = true
         programmParams = programmParams.removePrefix("-f")
         createServer()
     }
-    if (programmParams.startsWith("-r")){
+    if (programmParams.startsWith("-r")) {
         programmParams = programmParams.removePrefix("-r")
         joinServer(programmParams)
     }
@@ -42,18 +42,17 @@ fun main(args: Array<String>) {
     print(ConsoleColors.GREEN)
     when (scan.next()) {
         "j" -> {
-            var isIpCorrect = false
+            var isIpCorrect: Boolean
             do {
                 try {
                     isIpCorrect = true
                     print("type in the IP-Address of the server: ")
                     ipAddress = scan.next()
                     joinServer(ipAddress)
-                }
-                catch (_: Exception) {
+                } catch (_: Exception) {
                     isIpCorrect = false
                 }
-            }while (!isIpCorrect)
+            } while (!isIpCorrect)
         }
 
         "c" -> {
@@ -77,7 +76,7 @@ fun getIP(): String {
     }
 }
 
-fun writing(send: DataOutputStream, client: Socket, rsa: RSA) {
+fun writing(send: DataOutputStream, rsa: RSA) {
     while (chatting) {
         try {
             // scans for new messages
@@ -145,7 +144,7 @@ fun sendFile(send: DataOutputStream, rsa: RSA, filePath: String) {
     send.writeUTF(rsa.encrypt("file:${file.name}"))
 
     var fileSize: ULong = ((file.length() / 245) * 256).toULong()
-    if((file.length() % 245) > 0) {
+    if ((file.length() % 245) > 0) {
         fileSize += 256u
     }
     send.writeUTF(rsa.encrypt(fileSize.toString()))

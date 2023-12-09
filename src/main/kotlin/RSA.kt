@@ -54,15 +54,14 @@ class RSA {
     }
 
     fun setPartnersPublicKey(k: String) {
-          try {
-              val keyBytes = Base64.getDecoder().decode(k)
-              val keySpec = X509EncodedKeySpec(keyBytes)
-              val keyFactory = KeyFactory.getInstance("RSA")
-              partnerPublicKey = keyFactory.generatePublic(keySpec)
-          }
-          catch (_: Exception) {
-              println("Unsuccessful key exchange!")
-              exitProcess(0)
-          }
+        try {
+            val keyBytes = Base64.getDecoder().decode(k)
+            val keySpec = X509EncodedKeySpec(keyBytes)
+            val keyFactory = KeyFactory.getInstance("RSA")
+            partnerPublicKey = keyFactory.generatePublic(keySpec)
+        } catch (_: Exception) {
+            println("Unsuccessful key exchange!")
+            exitProcess(0)
+        }
     }
 }

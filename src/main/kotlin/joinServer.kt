@@ -21,5 +21,5 @@ fun joinServer(ip: String) {
 
     readMessages(rsa, receive, send, client)
 
-    writing(send, client,rsa)
+    writing(send, rsa)
 }

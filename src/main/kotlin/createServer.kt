@@ -24,14 +24,13 @@ fun createServer() {
 
     send.writeUTF(rsa.encrypt("$name joined"))
 
-    if(!singleFileTransfer){
+    if (!singleFileTransfer) {
         chatting = true
 
         readMessages(rsa, receive, send, client)
 
-        writing(send, client, rsa)
-    }
-    else {
+        writing(send, rsa)
+    } else {
         sendFile(send, rsa, programmParams)
         send.writeUTF(rsa.encrypt("stop"))
         client.close()

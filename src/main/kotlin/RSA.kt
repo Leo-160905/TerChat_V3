@@ -23,10 +23,6 @@ class RSA {
         privateKey = pair.private
     }
 
-    fun addPublicKeys(k: PublicKey) {
-        partnerPublicKey = k
-    }
-
     fun encrypt(message: String): String {
         val m: ByteArray = message.toByteArray(Charsets.UTF_8)
         val encrypter: Cipher = Cipher.getInstance("RSA")
@@ -68,10 +64,5 @@ class RSA {
               println("Unsuccessful key exchange!")
               exitProcess(0)
           }
-    }
-
-    fun soutKey() {
-        println(publicKey)
-        println(partnerPublicKey)
     }
 }

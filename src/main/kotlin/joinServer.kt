@@ -1,7 +1,6 @@
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
-import kotlin.system.exitProcess
 
 fun joinServer(ip: String) {
     val client = Socket(ip, SERVER_PORT)

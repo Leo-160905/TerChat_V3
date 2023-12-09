@@ -99,7 +99,7 @@ fun readMessages(rsa: RSA, receive: DataInputStream, client: Socket) {
                     exitProcess(0)
                 }
                 if (message.startsWith("file:")) {
-                    readFile(receive, client, rsa, message.removePrefix("file:"))
+                    readFile(receive, rsa, message.removePrefix("file:"))
                 } else println("${ConsoleColors.RED}$message ${ConsoleColors.GREEN}")
             } catch (e: Exception) {
                 println("connection closed")
@@ -126,10 +126,9 @@ fun sendFile(send: DataOutputStream, rsa: RSA, filePath: String) {
     send.writeUTF(rsa.encrypt(fileSize.toString()))
 
     val buffer = ByteArray(245)
-    var count: Int
 
     // This reads the next [Size of buffer] bytes into the buffer and stores how many bytes were stored in count
-    while ((fis.read(buffer).also { count = it }) > 0) {
+    while (fis.read(buffer) > 0) {
         // makes a stack for the encrypted message to handle with it
         val stack = rsa.encrypt(buffer)
         // sends every bytearray to the other socket until the file is completely red
@@ -143,7 +142,7 @@ fun sendFile(send: DataOutputStream, rsa: RSA, filePath: String) {
     return
 }
 
-fun readFile(receive: DataInputStream, client: Socket, rsa: RSA, filePath: String) {
+fun readFile(receive: DataInputStream, rsa: RSA, filePath: String) {
     // Create new scratch file from selection
     val file = File(filePath)
     val fos = FileOutputStream(file)
@@ -154,14 +153,12 @@ fun readFile(receive: DataInputStream, client: Socket, rsa: RSA, filePath: Strin
     // defines the size of every chunk of bytes that arrives, it is 1024 because the RSA is set to 1024 byte
     var size: ULong = rsa.decrypt(receive.readUTF()).toULong()
 
-    var count = 0
+
     val buffer = ByteArray(256)
 
     // Reads every chunk of bytes, which were sent
 //    while (size > 0u && (receive.read(buffer, 0, minOf(buffer.size.toULong(), size * 256u).toInt())
-    while (size > 0u && (receive.read(buffer, 0, buffer.size)
-            .also { count = it }) != -1
-    ) {
+    while (size > 0u && receive.read(buffer, 0, buffer.size) != -1) {
         // Stack to handle the inputs
         val stack = rsa.decrypt(buffer)
         // fos writes the decrypted Bytes to a File

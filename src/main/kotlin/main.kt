@@ -22,6 +22,7 @@ var chatting = false
 var name = ""
 var singleFileTransfer = false
 var programmParams = ""
+lateinit var thread: Thread
 
 fun main(args: Array<String>) {
     programmParams = args.joinToString("")
@@ -41,9 +42,18 @@ fun main(args: Array<String>) {
     print(ConsoleColors.GREEN)
     when (scan.next()) {
         "j" -> {
-            print("type in the IP-Address of the server: ")
-            ipAddress = scan.next()
-            joinServer(ipAddress)
+            var isIpCorrect = false
+            do {
+                try {
+                    isIpCorrect = true
+                    print("type in the IP-Address of the server: ")
+                    ipAddress = scan.next()
+                    joinServer(ipAddress)
+                }
+                catch (_: Exception) {
+                    isIpCorrect = false
+                }
+            }while (!isIpCorrect)
         }
 
         "c" -> {
@@ -80,11 +90,7 @@ fun writing(send: DataOutputStream, client: Socket, rsa: RSA) {
 
             // if message contains exit, close the connection
             if (message == "exit") {
-                chatting = false
                 send.writeUTF(rsa.encrypt("stop"))
-                send.close()
-                client.close()
-                exitProcess(0)
             }
 
             // if message starts with  file:, start the file transfer prozedur
@@ -92,22 +98,28 @@ fun writing(send: DataOutputStream, client: Socket, rsa: RSA) {
                 sendFile(send, rsa, message.removePrefix("file:"))
             } else send.writeUTF(rsa.encrypt("$name: $message")) // sends the message to the other socket
         } catch (e: Exception) {
-            println("connection closed")
+            println("connection closed 1")
             println(e)
             exitProcess(0)
         }
     }
 }
 
-fun readMessages(rsa: RSA, receive: DataInputStream, client: Socket) {
-    val thread = Thread {
+fun readMessages(rsa: RSA, receive: DataInputStream, send: DataOutputStream, client: Socket) {
+    thread = Thread {
         while (chatting) {
             try {
                 val message = rsa.decrypt(receive.readUTF())
                 if (message == "stop") {
-                    println("connection closed")
+                    println("connection closed \n")
+                    send.writeUTF(rsa.encrypt("stop2"))
                     chatting = false
-                    receive.close()
+                    client.close()
+                    exitProcess(0)
+                }
+                if (message == "stop2") {
+                    println("connection closed \n")
+                    chatting = false
                     client.close()
                     exitProcess(0)
                 }
@@ -115,7 +127,7 @@ fun readMessages(rsa: RSA, receive: DataInputStream, client: Socket) {
                     readFile(receive, rsa, message.removePrefix("file:"))
                 } else println("${ConsoleColors.RED}$message ${ConsoleColors.GREEN}")
             } catch (e: Exception) {
-                println("connection closed read")
+                println("connection closed 2")
                 println(e)
                 exitProcess(0)
             }

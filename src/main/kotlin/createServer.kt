@@ -27,7 +27,7 @@ fun createServer() {
     if(!singleFileTransfer){
         chatting = true
 
-        readMessages(rsa, receive, client)
+        readMessages(rsa, receive, send, client)
 
         writing(send, client, rsa)
     }

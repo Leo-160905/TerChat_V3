@@ -19,7 +19,7 @@ fun joinServer(ip: String) {
 
     chatting = true
 
-    readMessages(rsa, receive, client)
+    readMessages(rsa, receive, send, client)
 
     writing(send, client,rsa)
 }

@@ -2,6 +2,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.ServerSocket
 import java.net.Socket
+import kotlin.system.exitProcess
 
 fun createServer() {
     val server = ServerSocket(SERVER_PORT)
@@ -23,11 +24,21 @@ fun createServer() {
 
     send.writeUTF(rsa.encrypt("$name joined"))
 
-    chatting = true
+    if(!singleFileTransfer){
+        chatting = true
 
-    readMessages(rsa, receive, client)
+        readMessages(rsa, receive, client)
 
-    writing(send, client, rsa)
+        writing(send, client, rsa)
+    }
+    else {
+        sendFile(send, rsa, programmParams)
+        send.writeUTF(rsa.encrypt("stop"))
+        client.close()
+        send.close()
+        receive.close()
+        exitProcess(0)
+    }
 
 //    val thread = Thread {
 //        while (chatting) {

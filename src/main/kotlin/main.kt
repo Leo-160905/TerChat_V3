@@ -20,8 +20,20 @@ val scan = Scanner(System.`in`)
 var ipAddress: String = ""
 var chatting = false
 var name = ""
+var singleFileTransfer = false
+var programmParams = ""
 
-fun main() {
+fun main(args: Array<String>) {
+    programmParams = args.joinToString("")
+    if (programmParams.startsWith("-f")){
+        singleFileTransfer = true
+        programmParams = programmParams.removePrefix("-f")
+        createServer()
+    }
+    if (programmParams.startsWith("-r")){
+        programmParams = programmParams.removePrefix("-r")
+        joinServer(programmParams)
+    }
 
     print("Hi to TerChat mark 3, please enter your name: ")
     name = scan.nextLine()
@@ -103,7 +115,7 @@ fun readMessages(rsa: RSA, receive: DataInputStream, client: Socket) {
                     readFile(receive, rsa, message.removePrefix("file:"))
                 } else println("${ConsoleColors.RED}$message ${ConsoleColors.GREEN}")
             } catch (e: Exception) {
-                println("connection closed")
+                println("connection closed read")
                 println(e)
                 exitProcess(0)
             }

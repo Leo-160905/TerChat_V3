@@ -76,7 +76,7 @@ fun getIP(): String {
     }
 }
 
-fun writing(send: DataOutputStream, rsa: RSA) {
+fun writeMessages(send: DataOutputStream, rsa: RSA) {
     while (chatting) {
         try {
             // scans for new messages
@@ -95,7 +95,7 @@ fun writing(send: DataOutputStream, rsa: RSA) {
             // if message starts with  file:, start the file transfer prozedur
             if (message.startsWith("file:")) {
                 sendFile(send, rsa, message.removePrefix("file:"))
-            } else send.writeUTF(rsa.encrypt("$name: $message")) // sends the message to the other socket
+            } else writing("$name $message", rsa, send) // call the writing funktion to split the message to bytes
         } catch (e: Exception) {
             println("connection closed 1")
             println(e)
@@ -124,7 +124,8 @@ fun readMessages(rsa: RSA, receive: DataInputStream, send: DataOutputStream, cli
                 }
                 if (message.startsWith("file:")) {
                     readFile(receive, rsa, message.removePrefix("file:"))
-                } else println("${ConsoleColors.RED}$message ${ConsoleColors.GREEN}")
+                }
+                if (message.startsWith("message")) reading(receive, rsa) // code for an incoming message
             } catch (e: Exception) {
                 println("connection closed 2")
                 println(e)
@@ -133,6 +134,42 @@ fun readMessages(rsa: RSA, receive: DataInputStream, send: DataOutputStream, cli
         }
     }
     thread.start()
+}
+
+fun writing(message: String, rsa: RSA, send: DataOutputStream) {
+    send.writeUTF(rsa.encrypt("message")) // sends the code so the other partition knows that a message is coming
+
+    // calculating chunk size of message bytes
+    var messageSize = (message.length / 245) * 256
+    if (message.length % 245 > 0) {
+        messageSize += 256
+    }
+    send.writeUTF(rsa.encrypt(messageSize.toString()))
+
+    val buffer = ByteArray(245)
+    val ips = DataInputStream(message.byteInputStream())
+
+    // send the message bytes to the other partition
+    while (ips.read(buffer) > 0) {
+        val stack = rsa.encrypt(buffer)
+        send.write(stack, 0, stack.size)
+    }
+}
+
+fun reading(receive: DataInputStream, rsa: RSA) {
+    var messageSize = rsa.decrypt(receive.readUTF()).toInt() // receiving the byte size of each message chunk
+    val buffer = ByteArray(256)
+    var message = ""
+
+    // receiving the bytes of the message
+    while (messageSize > 0 && receive.read(buffer, 0, buffer.size) != -1) {
+        val stack = rsa.decrypt(buffer)
+        for (s in stack) {
+            message += s.toInt().toChar()
+        }
+        messageSize -= 256
+    }
+    println("${ConsoleColors.RED}$message ${ConsoleColors.GREEN}")
 }
 
 fun sendFile(send: DataOutputStream, rsa: RSA, filePath: String) {
@@ -152,7 +189,7 @@ fun sendFile(send: DataOutputStream, rsa: RSA, filePath: String) {
     val buffer = ByteArray(245)
 
     // This reads the next [Size of buffer] bytes into the buffer and stores how many bytes were stored in count
-    while (fis.read(buffer) > 0) {
+    while (fis.read(buffer) != -1) {
         // makes a stack for the encrypted message to handle with it
         val stack = rsa.encrypt(buffer)
         // sends every bytearray to the other socket until the file is completely red

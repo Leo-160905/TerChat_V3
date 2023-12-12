@@ -1,3 +1,4 @@
+import java.ConsoleColors
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.ServerSocket
@@ -22,6 +23,7 @@ fun createServer() {
     rsa.setPartnersPublicKey(receive.readUTF())
     println("key exchange successful")
 
+    println("${ConsoleColors.RED}${rsa.decrypt(receive.readUTF())} ${ConsoleColors.GREEN}")
     send.writeUTF(rsa.encrypt("$name joined"))
 
     if (!singleFileTransfer) {
@@ -29,7 +31,7 @@ fun createServer() {
 
         readMessages(rsa, receive, send, client)
 
-        writing(send, rsa)
+        writeMessages(send, rsa)
     } else {
         sendFile(send, rsa, programmParams)
         send.writeUTF(rsa.encrypt("stop"))

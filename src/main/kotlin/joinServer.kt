@@ -1,3 +1,4 @@
+import java.ConsoleColors
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
@@ -16,10 +17,11 @@ fun joinServer(ip: String) {
     println("key exchange successful")
 
     send.writeUTF(rsa.encrypt("$name joined"))
+    println("${ConsoleColors.RED}${rsa.decrypt(receive.readUTF())} ${ConsoleColors.GREEN}")
 
     chatting = true
 
     readMessages(rsa, receive, send, client)
 
-    writing(send, rsa)
+    writeMessages(send, rsa)
 }
